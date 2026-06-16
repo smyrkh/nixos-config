@@ -1,28 +1,11 @@
-# Edit this configuration file to define what should be installed on
-# your system. Help is available in the configuration.nix(5) man page, on
-# https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
-
 {
 config,
 lib,
 pkgs,
 ...
 }:
-
-# let
-# 	# x86_64 execution environment on arm
-# 	x86pkgs = pkgs.pkgsCross.gnu64;
-# 	x86libs = pkgs.buildEnv {
-# 		name = "x86-64-libs";
-# 		paths = [
-# 			"${x86pkgs.glibc}/lib"
-# 			"${x86pkgs.stdenv.cc.cc.lib}/lib"
-# 		];
-# 	};
-# in
 {
 	imports = [
-		# Include the results of the hardware scan.
 		./hardware-configuration.nix
 	];
 
@@ -73,6 +56,9 @@ pkgs,
 
 	nixpkgs.config = {
 		allowUnfree = true;
+		permittedInsecurePackages = [
+			"docker-28.5.2"
+		];
 	};
 
 	# install programs
@@ -95,7 +81,7 @@ pkgs,
 		# download file
 		wget
 		# interactive filter
-		peco
+    fzf
 
 		# -- development packages --
 
@@ -130,6 +116,8 @@ pkgs,
 		volta
 		# lua
 		lua-language-server
+    # parser
+    tree-sitter
 
 		# -- improved packages --
 
@@ -151,6 +139,8 @@ pkgs,
 		dust
 		# mysql
 		mycli
+    # zsh prompt
+    starship
 
 		# -- analysis packages
 
@@ -208,12 +198,6 @@ pkgs,
 		};
 		zsh = {
 			enable = true;
-			# x86_64 commands on arm
-			# shellInit = ''
-			# 	alias x86_64-ldd="${lib.getBin x86pkgs.glibc}/bin/ldd"
-			# 	alias x86_64-gdb="${lib.getBin x86pkgs.gdb}/bin/gdb"
-			# 	alias x86_64-ltrace="${lib.getBin x86pkgs.ltrace}/bin/ltrace"
-			# '';
 		};
 		neovim = {
 			enable = true;
@@ -261,8 +245,9 @@ pkgs,
 	users = {
 		# commented out: enable root login without initialHashedPassword for root
 		# mutableUsers = false;
-		users."5ky12hm" = {
+		users."smyrkh" = {
 			isNormalUser = true;
+      uid = 1001;
 			extraGroups = [
 				"wheel"
 				"docker"
@@ -277,7 +262,7 @@ pkgs,
 	};
 	security.sudo.extraRules = [
 		{
-			users = [ "5ky12hm" ];
+			users = [ "smyrkh" ];
 			commands = [
 				{
 					command = "ALL";
@@ -325,36 +310,4 @@ pkgs,
 	};
 	# x86_64 execution config on arm
 	virtualisation.rosetta.enable = true;
-
-	# fileSystems."/lib64" = {
-	# 	# device = x86glibcLib;
-	# 	device = x86libs.outPath;
-	# 	options = [ "bind" "ro" ];
-	# };
-
-# 	environment.etc."binfmt.d/x86_64.conf".text =
-# 		let
-# 			qemu = pkgs.qemu;
-# 		in
-# 		''
-# :x86_64:M:0:\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x3e\x00:\xff\xff\xff\xff\xff\xfe\xfe\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:${qemu}/bin/qemu-x86_64-static:FPC
-# 		'';
-
-	# boot.binfmt = {
-	# 	emulatedSystems = [ "x86_64-linux" ];
-	# 	# make it work with docker
-	# 	# maybe fix https://github.com/NixOS/nixpkgs/issues/392673
-	# 	preferStaticEmulators = true;
-	#
-	# 	# registrations.x86_64-linux = {
-	# 	# 	fixBinary = true;
-	# 	# 	# matchCredentials = true;
-	# 	# 	# preserveArgvZero = true;
-	# 	# 	# wrapInterpreterInShell = false;
-	# 	# 	#
-	# 	# 	# magicOrExtension = ''\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x3e\x00'';
-	# 	# 	# mask = lib.mkForce ''\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff'';
-	# 	# 	# mask = lib.mkForce ''\xff\xff\xff\xff\xff\xfe\xfe\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff'';
-	# 	# };
-	# };
 }
